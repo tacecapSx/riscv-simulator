@@ -35,7 +35,10 @@ int load(char* fname){
     return 0;
 }
 
+//Function to read instruction from memory
+int read() {
 
+}
 
 
 
@@ -51,4 +54,5 @@ int main(int argc, char* argv[]){
         return 1;
     }
     load(argv[1]);
+
 }
