@@ -3,7 +3,7 @@
 #include "stdlib.h"
 
 //defining 32 bit program counter.
-uint32_t PC = 0;
+uint32_t pc = 0;
 
 //zero register
 const uint32_t x0 = 0;
@@ -12,7 +12,7 @@ const uint32_t x0 = 0;
 uint32_t x[31];
 
 //memory with 2³² Gb RAM.
-uint8_t *mem;
+uint32_t mem[4294967295];
 
 //Function to load program
 int load(char* fname){
@@ -36,8 +36,9 @@ int load(char* fname){
 }
 
 //Function to read instruction from memory
-int read() {
-
+int readInstr() {
+    uint32_t instr = mem[pc];
+    pc ++;
 }
 
 
@@ -48,7 +49,6 @@ int read() {
 
 
 int main(int argc, char* argv[]){
-    mem = malloc(4294967295*sizeof(uint8_t));
     if(argc != 2) {
         printf("Missing argument");
         return 1;
