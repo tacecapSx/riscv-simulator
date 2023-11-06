@@ -23,10 +23,10 @@ long get_file_size(FILE* file) {
 }
 
 //Function to load program
-int load(char* fname){
+int load(char* file_name){
     printf("Opening .bin file...\n");
 
-    FILE* file = fopen(fname, "r");
+    FILE* file = fopen(file_name, "r");
     int i = 0;
 
     long file_size = get_file_size(file);
@@ -34,9 +34,9 @@ int load(char* fname){
     printf("Collecting binary data into program memory...\n");
 
     while (ftell(file) < file_size - 4) {
-        // collecting chars into one 32-bit instruction
+        // collecting chars into one 32-bit instruction and bitshift to simulate risc-v memory layout
         uint32_t read = 0;
-        for(int j = 3; j >= 0; j--) {
+        for(int j = 0; j <= 3; j++) {
             uint32_t byte = fgetc(file);
 
             read = (byte << (j * 8)) | read;
@@ -57,11 +57,32 @@ int load(char* fname){
 }
 
 //Function to read instruction from memory
-int read_instruction() {
+uint32_t read_instruction() {
     uint32_t instruction = mem[pc];
     pc++;
+    return instruction;
 }
 
+//Decode instruction
+uint32_t decode(uint32_t instruction) {
+    uint8_t opcode = instruction & 0x7F; //7F represents the mask for opcode
+    uint8_t func3 = (instruction >> 12) & 0x7;
+    switch(opcode) {
+        case 0x37:
+            LUI(instruction);
+        case 0x17:
+            AUIPC(instruction);
+        case 0x6F:
+            JAL(instruction);
+        case 0x67:
+            JALR(instruction);
+        case 0x63:
+            switch(func3) {
+
+            }
+
+   }
+}
 
 
 
@@ -71,9 +92,14 @@ int read_instruction() {
 
 int main(int argc, char* argv[]){
     if(argc != 2) {
-        printf("Missing argument");
+        printf("Missing argument\n");
         return 1;
     }
     load(argv[1]);
+
+    while (1){
+        uint32_t instruction = read_instruction();
+
+    }
 
 }
