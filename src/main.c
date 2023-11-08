@@ -77,9 +77,81 @@ uint32_t decode(uint32_t instruction) {
         case 0x67:
             JALR(instruction);
         case 0x63:
-            switch(func3) {
+            switch(func3_branch) {
+                case 0x0:
+                    BEQ(instruction);
+                case 0x1:
+                    BNE(instruction);
+                case 0x4:
+                    BLT(instruction);
+                case 0x5:
+                    BGE(instruction);
+                case 0x6:
+                    BLTU(instruction);
+                case 0x7:
+                    BGEU(instruction);
+            }
+        case 0x3:
+            switch (func3_load) {
+                case 0x0:
+                    LB(instruction);
+                case 0x1:
+                    LH(instruction);
+                case 0x2:
+                    LW(instruction);
+                case 0x4:
+                    LBU(instruction);
+                case 0x5:
+                    LHU(instruction);
+            }
+        case 0x23:
+            switch (func3_store) {
+                case 0x0:
+                    SB(instruction);
+                case 0x1:
+                    SH(instruction);
+                case 0x2:
+                    SW(instruction);
+            }
+        case 0x13:
+            switch (func3_two_op) {
+                case 0x0:
+                    ADDI(instruction);
+                case 0x2:
+                    SLTI(instruction);
+                case 0x3:
+                    SLTIU(instruction);
+                case 0x4:
+                    XORI(instruction);
+                case 0x6:
+                    ORI(instruction);
+                case 0x7:
+                    ANDI(instruction);
+                case 0x1:
+                    SLLI(instruction);
+                case 0x5:
+                    switch (imm) {
+                        case 0x0:
+                            SRLI(instruction);
+                        case 0x20:
+                            SRAI(instruction);                        
+                    }
+            }
+        case 0x33:
+            switch (func3_logic) {
+                case 0x0:
+                    switch (imm_add_sub) {
+                        case 0x0:
+                            ADD(instruction);
+                        case 0x20:
+                            SUB(instruction);
+                    }
+                case expression:
 
             }
+            
+
+
 
    }
 }
