@@ -146,9 +146,27 @@ uint32_t decode(uint32_t instruction) {
                         case 0x20:
                             SUB(instruction);
                     }
-                case expression:
-
+                case 0x1:
+                    SLL(instruction);
+                case 0x2:
+                    SLT(instruction);
+                case 0x3:
+                    SLTU(instruction);
+                case 0x4:
+                    XOR(instruction);
+                case 0x5:
+                    switch (imm_sr) {
+                        case 0x0:
+                            SRL(instruction);
+                        case 0x20:
+                            SRA(instruction);
+                    }
+                case 0x6:
+                    OR(instruction);
+                case 0x7:
+                    AND(instruction);
             }
+
             
 
 
