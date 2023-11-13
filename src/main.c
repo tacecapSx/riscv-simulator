@@ -11,10 +11,10 @@ int stop = 0;
 uint32_t pc = 0;
 
 //zero register
-const uint32_t x0 = 0;
+const int32_t x0 = 0;
 
 //register x1 to x32
-uint32_t x[32];
+int32_t x[32];
 
 //memory with 1 mb.
 uint32_t mem[262144];
@@ -84,7 +84,7 @@ uint32_t decode(uint32_t instruction) {
         rd =     (instruction & 0b00000000000000000000111110000000) >> 7;
         funct3 = (instruction & 0b00000000000000000111000000000000) >> 12;
         rs1 =    (instruction & 0b00000000000011111000000000000000) >> 15;
-        imm =    (instruction & 0b11111111111100000000000000000000) >> 20;
+        imm =    ((int32_t)instruction >> 20);
     }
 
 
