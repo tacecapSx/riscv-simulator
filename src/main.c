@@ -6,12 +6,17 @@
 #include "instructions.h"
 #include <string.h>
 
-//defining 32 bit program counter.
+//defining the instruction formats
+uint32_t r_format_instructions[] = {0x33,0xFF};
+uint32_t i_format_instructions[] = {0x13,0xFF};
+uint32_t s_format_instructions[] = {0xFF};
+uint32_t sb_format_instructions[] = {0xFF};
+uint32_t u_format_instructions[] = {0xFF};
+uint32_t uj_format_instructions[] = {0xFF};
+
+//defining stop signal 32 bit program counter.
 int stop = 0;
 uint32_t pc = 0;
-
-//zero register
-const int32_t x0 = 0;
 
 //register x1 to x32
 int32_t x[32];
@@ -58,6 +63,20 @@ void print_results() {
     }
 }
 
+int array_contains_value(int value, uint32_t* array) {
+    int i = 0;
+    
+    while(array[i] != 0xFF) {
+        if(value == array[i]) {
+            return 1;
+        }
+
+        i++;
+    }
+
+    return 0;
+}
+
 //Decode instruction
 uint32_t decode(uint32_t instruction) {
     int opcode = instruction & 0b1111111; // 7 least significant bits are opcode
@@ -73,18 +92,18 @@ uint32_t decode(uint32_t instruction) {
 
     // deciding which format to use
 
-    if(opcode == 0x33) { // R-format
+    if(array_contains_value(opcode,r_format_instructions)) { // R-format
         rd =     (instruction & 0b00000000000000000000111110000000) >> 7;
         funct3 = (instruction & 0b00000000000000000111000000000000) >> 12;
         rs1 =    (instruction & 0b00000000000011111000000000000000) >> 15;
         rs2 =    (instruction & 0b00000001111100000000000000000000) >> 20;
-        funct7 = (instruction & 0b11111110000000000000000000000000) >> 25;
+        funct7 = instruction >> 25;
     }
-    else if(opcode == 0x13) { // I-format
+    else if(array_contains_value(opcode,i_format_instructions)) { // I-format
         rd =     (instruction & 0b00000000000000000000111110000000) >> 7;
         funct3 = (instruction & 0b00000000000000000111000000000000) >> 12;
         rs1 =    (instruction & 0b00000000000011111000000000000000) >> 15;
-        imm =    ((int32_t)instruction >> 20);
+        imm =    (int32_t)instruction >> 20;
     }
 
 
@@ -210,6 +229,8 @@ void run_program() {
         uint32_t current_instruction = read_instruction();
 
         decode(current_instruction);
+
+        x[0] = 0; // make sure x0 is always 0
 
         pc++;
     }
