@@ -4,6 +4,7 @@
 #include "stdint.h"
 #include "stdlib.h"
 #include "instructions.h"
+#include <string.h>
 
 //defining 32 bit program counter.
 int stop = 0;
@@ -214,8 +215,6 @@ void run_program() {
     }
 }
 
-
-
 //Function to load program
 int load(char* fname){
     printf("Opening .bin file...\n");
@@ -250,9 +249,62 @@ int load(char* fname){
 
     print_results();
 
-    printf("Exiting...");
+    printf("Program has terminated...\n");
 
     return 0;
+}
+
+void create_result_file(char* file_name) {
+    // open the file in binary write mode
+    FILE* file = fopen(file_name, "wb");
+
+    if (file != NULL) {
+        // write the data to the file
+        fwrite(x, sizeof(uint32_t), sizeof(x) / sizeof(uint32_t), file);
+
+        // close the file when done
+        fclose(file);
+        printf("File written successfully!\n");
+    } else {
+        // handle error if file couldn't be opened
+        printf("Error opening file!\n");
+    }
+}
+
+void compare_results(char* binary_file, char* generated_result_filename) {
+    FILE* file1 = fopen(generated_result_filename, "r");
+    
+    char* dot_position = strchr(binary_file, '.');
+    strcpy(dot_position + 1, "res");
+
+    FILE* file2 = fopen(binary_file, "r");
+
+    char byte1;
+    char byte2;
+    int i = 0;
+    int found_difference = 0;
+
+    printf("Comparing results...\n");
+
+    do {
+        byte1 = fgetc(file1);
+        byte2 = fgetc(file2);
+
+        if (byte1 != byte2) {
+            found_difference = 1;
+            printf("Difference at byte %d\n", i);
+        }
+
+        i++;
+    } while (byte1 != EOF && byte2 != EOF);
+
+    // close the files when done
+    fclose(file1);
+    fclose(file2);
+
+    if(!found_difference) {
+        printf("No differences found!\n");
+    }
 }
 
 int main(int argc, char* argv[]){
@@ -261,5 +313,12 @@ int main(int argc, char* argv[]){
         return 1;
     }
     load(argv[1]);
+
+    char* file_name_to_save = argv[1];
+    sprintf(file_name_to_save, "%s.res", argv[1]);
+
+    create_result_file(file_name_to_save);
+
+    compare_results(argv[1], file_name_to_save);
 
 }

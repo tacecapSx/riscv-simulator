@@ -1,3 +1,6 @@
+# Result files
+*.bin.res
+
 # Prerequisites
 *.d
 
