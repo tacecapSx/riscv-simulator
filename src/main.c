@@ -112,7 +112,11 @@ uint32_t decode(uint32_t instruction) {
             ADD(x, rd, funct3, rs1, rs2, funct7);
         break;
         case 0x13:
-            LI(x, rd, funct3, rs1, imm);
+            switch(funct3) {
+                case 0b000:
+                    ADDI(x, rd, funct3, rs1, imm);
+                break;
+            }
         break;
         case 0x73:
             ecall();
@@ -221,7 +225,6 @@ uint32_t decode(uint32_t instruction) {
    }
 }
 
-
 void run_program() {
     printf("Running program...\n");
 
@@ -237,7 +240,7 @@ void run_program() {
 }
 
 //Function to load program
-int load(char* fname){
+void load(char* fname){
     printf("Opening .bin file...\n");
 
     FILE* file = fopen(fname, "r");
@@ -247,7 +250,7 @@ int load(char* fname){
 
     printf("Collecting binary data into program memory...\n");
 
-    while (ftell(file) < file_size - 4) {
+    while (ftell(file) < file_size) {
         // collecting chars into one 32-bit instruction
         uint32_t read = 0;
         for(int j = 0; j <= 3; j++) {
@@ -265,14 +268,6 @@ int load(char* fname){
     }
 
     fclose(file);
-
-    run_program();
-
-    print_results();
-
-    printf("Program has terminated...\n");
-
-    return 0;
 }
 
 void create_result_file(char* file_name) {
@@ -333,7 +328,12 @@ int main(int argc, char* argv[]){
         printf("Missing argument");
         return 1;
     }
+    
     load(argv[1]);
+
+    run_program();
+
+    print_results();
 
     char* file_name_to_save = argv[1];
     sprintf(file_name_to_save, "%s.res", argv[1]);
@@ -342,4 +342,5 @@ int main(int argc, char* argv[]){
 
     compare_results(argv[1], file_name_to_save);
 
+    return 0;
 }
