@@ -59,7 +59,7 @@ void print_results() {
     printf("Registers:\nx0 = 0\n");
 
     for(int i = 1; i < 32; i++) {
-        printf("x%d = %d\n", i, x[i]);
+        printf("x%d = %x\n", i, x[i]);
     }
 }
 
