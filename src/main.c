@@ -11,7 +11,7 @@ uint32_t r_format_instructions[] = {0x33,0xFF};
 uint32_t i_format_instructions[] = {0x13,0xFF};
 uint32_t s_format_instructions[] = {0xFF};
 uint32_t sb_format_instructions[] = {0xFF};
-uint32_t u_format_instructions[] = {0xFF};
+uint32_t u_format_instructions[] = {0x37,0xFF};
 uint32_t uj_format_instructions[] = {0xFF};
 
 //defining stop signal 32 bit program counter.
@@ -59,7 +59,7 @@ void print_results() {
     printf("Registers:\nx0 = 0\n");
 
     for(int i = 1; i < 32; i++) {
-        printf("x%d = %d\n", i, x[i]);
+        printf("x%d = %x\n", i, x[i]);
     }
 }
 
@@ -105,19 +105,49 @@ uint32_t decode(uint32_t instruction) {
         rs1 =    (instruction & 0b00000000000011111000000000000000) >> 15;
         imm =    (int32_t)instruction >> 20;
     }
+    else if(array_contains_value(opcode,u_format_instructions)) { // U-format
+        rd =    (instruction & 0b00000000000000000000111110000000) >> 7;
+        imm =   (instruction & 0b11111111111111111111000000000000);
+    }
 
 
     switch(opcode) {
         case 0x33:
-            ADD(x, rd, funct3, rs1, rs2, funct7);
-        break;
+            switch (funct3) {
+                case 0b000:
+                    ADD(x, rd, funct3, rs1, rs2, funct7);
+                    break;
+                case 0b100:
+                    XOR(x, rd, funct3, rs1, rs2, funct7);
+                    break;
+                case 0b110:
+                    OR(x, rd, funct3, rs1, rs2, funct7);
+                    break;
+                case 0b111:
+                    AND(x, rd, funct3, rs1, rs2, funct7);
+                    break;
+            }
+            break;
         case 0x13:
             switch(funct3) {
                 case 0b000:
                     ADDI(x, rd, funct3, rs1, imm);
-                break;
+                    break;
+                case 0b100:
+                    XORI(x, rd, funct3, rs1, imm);
+                    break;
+                case 0b110:
+                    ORI(x, rd, funct3, rs1, imm);
+                    break;
+                case 0b111:
+                    ANDI(x, rd, funct3, rs1, imm);
+                    break;
             }
-        break;
+            break;
+        case 0x37:
+            LUI(x, rd, imm);
+            break;
+            
         case 0x73:
             ecall();
         break;
