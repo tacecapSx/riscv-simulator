@@ -59,7 +59,7 @@ void print_results() {
     printf("Registers:\nx0 = 0\n");
 
     for(int i = 1; i < 32; i++) {
-        printf("x%d = %d\n", i, x[i]);
+        printf("x%d = %x\n", i, x[i]);
     }
 }
 
@@ -113,10 +113,22 @@ uint32_t decode(uint32_t instruction) {
 
     switch(opcode) {
         case 0x33:
+            
             switch(funct3)
             {
                 case 0b000:
-                    ADD(x, rd, funct3, rs1, rs2, funct7);
+                    if(funct7 == 0) {
+                        ADD(x, rd, funct3, rs1, rs2, funct7);
+                    }
+                    else {
+                        SUB(x, rd, funct3, rs1, rs2, funct7);
+                    }
+                break;
+                case 0b010:
+                    SLT(x, rd, funct3, rs1, rs2, funct7);
+                break;
+                case 0b011:
+                    SLTU(x, rd, funct3, rs1, rs2, funct7);
                 break;
                 case 0b100:
                     XOR(x, rd, funct3, rs1, rs2, funct7);
@@ -130,9 +142,16 @@ uint32_t decode(uint32_t instruction) {
             }
         break;
         case 0x13:
+        printf("%d",funct3);
             switch(funct3) {
                 case 0b000:
                     ADDI(x, rd, funct3, rs1, imm);
+                break;
+                case 0b010:
+                    SLTI(x, rd, funct3, rs1, imm);
+                break;
+                case 0b011:
+                    SLTIU(x, rd, funct3, rs1, imm);
                 break;
                 case 0b100:
                     XORI(x, rd, funct3, rs1, imm);
