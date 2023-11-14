@@ -26,6 +26,19 @@ void ANDI(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, int32_t imm) {
     x[rd] = x[rs1] & imm;
 }
 
+void SLLI(uint32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, int32_t imm) {
+    x[rd] = x[rs1] << (imm & 0x1f);
+}
+
+void SRAI(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, int32_t imm) {
+    int significant = x[rd] >> 31;
+    x[rd] = x[rs1];
+    for (int i = 0; i < (imm & 0x1f); i++) {
+        x[rd] = x[rd] >> 1;
+        x[rd] = x[rd] | (significant << 31);
+    }
+}
+
 void ADD(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, uint8_t rs2, uint8_t funct7) {
     x[rd] = x[rs1] + x[rs2];
 }
