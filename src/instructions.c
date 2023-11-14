@@ -54,6 +54,42 @@ void AND(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, uint8_t rs2, ui
     x[rd] = x[rs1] & x[rs2];
 }
 
+void BEQ(int32_t x[32], uint32_t *pc, uint8_t rs1, uint8_t rs2, int32_t imm) {
+    if(x[rs1] == x[rs2]) {
+        *pc += (imm - 4);
+    }
+}
+
+void BNE(int32_t x[32], uint32_t *pc, uint8_t rs1, uint8_t rs2, int32_t imm) {
+    if(x[rs1] != x[rs2]) {
+        *pc += (imm - 4);
+    }
+}
+
+void BLT(int32_t x[32], uint32_t *pc, uint8_t rs1, uint8_t rs2, int32_t imm) {
+    if(x[rs1] < x[rs2]) {
+        *pc += (imm - 4);
+    }
+}
+
+void BGE(int32_t x[32], uint32_t *pc, uint8_t rs1, uint8_t rs2, int32_t imm) {
+    if(x[rs1] >= x[rs2]) {
+        *pc += (imm - 4);
+    }
+}
+
+void BLTU(int32_t x[32], uint32_t *pc, uint8_t rs1, uint8_t rs2, int32_t imm) {
+    if((uint32_t)x[rs1] < (uint32_t)x[rs2]) {
+        *pc += (imm - 4);
+    }
+}
+
+void BGEU(int32_t x[32], uint32_t *pc, uint8_t rs1, uint8_t rs2, int32_t imm) {
+    if((uint32_t)x[rs1] >= (uint32_t)x[rs2]) {
+        *pc += (imm - 4);
+    }
+}
+
 void LUI(int32_t x[32], uint8_t rd, int32_t imm) {
     x[rd] = ((uint32_t)x[rd] & 0xfff) | ((uint32_t)imm << 12);
 }

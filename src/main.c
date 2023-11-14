@@ -10,7 +10,7 @@
 uint32_t r_format_instructions[] = {0x33,0xFF};
 uint32_t i_format_instructions[] = {0x13,0xFF};
 uint32_t s_format_instructions[] = {0xFF};
-uint32_t sb_format_instructions[] = {0xFF};
+uint32_t sb_format_instructions[] = {0x63,0xFF};
 uint32_t u_format_instructions[] = {0x37,0xFF};
 uint32_t uj_format_instructions[] = {0xFF};
 
@@ -105,6 +105,12 @@ uint32_t decode(uint32_t instruction) {
         rs1 =    (instruction & 0b00000000000011111000000000000000) >> 15;
         imm =    (int32_t)instruction >> 20;
     }
+    else if(array_contains_value(opcode,sb_format_instructions)) { // SB-format
+        funct3 = (instruction & 0b00000000000000000111000000000000) >> 12;
+        rs1 =    (instruction & 0b00000000000011111000000000000000) >> 15;
+        rs2 =    (instruction & 0b00000001111100000000000000000000) >> 20;
+        imm =    (int32_t)((((((instruction & 0x7E000000) >> 21) | ((instruction & 0xF00) >> 8)) | ((instruction & 0x80000000) >> 20)) | ((instruction & 0x80) << 3)) << 20) >> 19;
+    }
     else if(array_contains_value(opcode,u_format_instructions)) { // U-format
         rd =     (instruction & 0b00000000000000000000111110000000) >> 7;
         imm =    (int32_t)instruction >> 12;
@@ -142,7 +148,6 @@ uint32_t decode(uint32_t instruction) {
             }
         break;
         case 0x13:
-        printf("%d",funct3);
             switch(funct3) {
                 case 0b000:
                     ADDI(x, rd, funct3, rs1, imm);
@@ -166,6 +171,28 @@ uint32_t decode(uint32_t instruction) {
         break;
         case 0x37:
             LUI(x, rd, imm);
+        break;
+        case 0x63:
+            switch(funct3) {
+                case 0b000:
+                    BEQ(x, &pc, rs1, rs2, imm);
+                break;
+                case 0b001:
+                    BNE(x, &pc, rs1, rs2, imm);
+                break;
+                case 0b100:
+                    BLT(x, &pc, rs1, rs2, imm);
+                break;
+                case 0b101:
+                    BGE(x, &pc, rs1, rs2, imm);
+                break;
+                case 0b110:
+                    BLTU(x, &pc, rs1, rs2, imm);
+                break;
+                case 0b111:
+                    BGEU(x, &pc, rs1, rs2, imm);
+                break;
+            }
         break;
         case 0x73:
             ecall();
@@ -284,7 +311,7 @@ void run_program() {
 
         x[0] = 0; // make sure x0 is always 0
 
-        pc++;
+        pc += 4;
     }
 }
 
@@ -313,7 +340,7 @@ void load(char* fname){
         printf("\n");
 
         mem[memory_position] = read;
-        memory_position++;
+        memory_position += 4;
     }
 
     fclose(file);
