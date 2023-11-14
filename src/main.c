@@ -123,22 +123,22 @@ uint32_t decode(uint32_t instruction) {
                     else {
                         SUB(x, rd, funct3, rs1, rs2, funct7);
                     }
-                break;
+                    break;
                 case 0b010:
                     SLT(x, rd, funct3, rs1, rs2, funct7);
-                break;
+                    break;
                 case 0b011:
                     SLTU(x, rd, funct3, rs1, rs2, funct7);
-                break;
+                    break;
                 case 0b100:
                     XOR(x, rd, funct3, rs1, rs2, funct7);
-                break;
+                    break;
                 case 0b110:
                     OR(x, rd, funct3, rs1, rs2, funct7);
-                break;
+                    break;
                 case 0b111:
                     AND(x, rd, funct3, rs1, rs2, funct7);
-                break;
+                    break;
             }
         break;
         case 0x13:
@@ -146,22 +146,28 @@ uint32_t decode(uint32_t instruction) {
             switch(funct3) {
                 case 0b000:
                     ADDI(x, rd, funct3, rs1, imm);
-                break;
+                    break;
                 case 0b010:
                     SLTI(x, rd, funct3, rs1, imm);
-                break;
+                    break;
                 case 0b011:
                     SLTIU(x, rd, funct3, rs1, imm);
-                break;
+                    break;
                 case 0b100:
                     XORI(x, rd, funct3, rs1, imm);
                 break;
                 case 0b110:
                     ORI(x, rd, funct3, rs1, imm);
-                break;
+                    break;
                 case 0b111:
                     ANDI(x, rd, funct3, rs1, imm);
-                break;
+                    break;
+                case 0b001:
+                    SLLI(x, rd, funct3, rs1, imm);
+                    break;
+                case 0b101:
+                    SRAI(x, rd, funct3, rs1, imm);
+                    break;
             }
         break;
         case 0x37:
