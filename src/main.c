@@ -6,23 +6,15 @@
 #include "instructions.h"
 #include <string.h>
 
-//defining the instruction formats
-uint32_t r_format_instructions[] = {0x33,0xFF};
-uint32_t i_format_instructions[] = {0x13,0xFF};
-uint32_t s_format_instructions[] = {0xFF};
-uint32_t sb_format_instructions[] = {0x63,0xFF};
-uint32_t u_format_instructions[] = {0x37,0xFF};
-uint32_t uj_format_instructions[] = {0xFF};
-
-//defining stop signal 32 bit program counter.
+//defining stop signal and 32 bit program counter.
 int stop = 0;
 uint32_t pc = 0;
 
 //register x1 to x32
 int32_t x[32];
 
-//memory with 1 mb.
-uint32_t mem[262144];
+//memory with 2 mb.
+uint8_t mem[2097152];
 
 void print_binary(uint32_t instruction) {
     for (int i = 31; i >= 0; i--) {
@@ -30,17 +22,9 @@ void print_binary(uint32_t instruction) {
     }
 }
 
-long get_file_size(FILE* file) {
-    fseek(file, 0L, SEEK_END);
-    long file_size = ftell(file);
-    fseek(file, 0L, SEEK_SET);
-
-    return file_size;
-}
-
 //Function to read instruction from memory
 uint32_t read_instruction() {
-    return mem[pc];
+    return *(uint32_t*)&mem[pc];
 }
 
 void ecall() {
@@ -63,25 +47,9 @@ void print_results() {
     }
 }
 
-int array_contains_value(int value, uint32_t* array) {
-    int i = 0;
-    
-    while(array[i] != 0xFF) {
-        if(value == array[i]) {
-            return 1;
-        }
-
-        i++;
-    }
-
-    return 0;
-}
-
 //Decode instruction
 uint32_t decode(uint32_t instruction) {
-    int opcode = instruction & 0b1111111; // 7 least significant bits are opcode
-
-    printf("Performing opcode: %d\n", opcode);
+    int opcode = instruction & 0x7F; // 7 least significant bits are opcode
 
     uint8_t rd;
     uint8_t funct3;
@@ -92,26 +60,26 @@ uint32_t decode(uint32_t instruction) {
 
     // deciding which format to use
 
-    if(array_contains_value(opcode,r_format_instructions)) { // R-format
+    if(opcode == 0x33) { // R-format
         rd =     (instruction & 0b00000000000000000000111110000000) >> 7;
         funct3 = (instruction & 0b00000000000000000111000000000000) >> 12;
         rs1 =    (instruction & 0b00000000000011111000000000000000) >> 15;
         rs2 =    (instruction & 0b00000001111100000000000000000000) >> 20;
         funct7 = instruction >> 25;
     }
-    else if(array_contains_value(opcode,i_format_instructions)) { // I-format
+    else if(opcode == 0x13) { // I-format
         rd =     (instruction & 0b00000000000000000000111110000000) >> 7;
         funct3 = (instruction & 0b00000000000000000111000000000000) >> 12;
         rs1 =    (instruction & 0b00000000000011111000000000000000) >> 15;
         imm =    (int32_t)instruction >> 20;
     }
-    else if(array_contains_value(opcode,sb_format_instructions)) { // SB-format
+    else if(opcode == 0x63) { // SB-format
         funct3 = (instruction & 0b00000000000000000111000000000000) >> 12;
         rs1 =    (instruction & 0b00000000000011111000000000000000) >> 15;
         rs2 =    (instruction & 0b00000001111100000000000000000000) >> 20;
         imm =    (int32_t)((((((instruction & 0x7E000000) >> 21) | ((instruction & 0xF00) >> 8)) | ((instruction & 0x80000000) >> 20)) | ((instruction & 0x80) << 3)) << 20) >> 19;
     }
-    else if(array_contains_value(opcode,u_format_instructions)) { // U-format
+    else if(opcode == 0x37) { // U-format
         rd =     (instruction & 0b00000000000000000000111110000000) >> 7;
         imm =    (int32_t)instruction >> 12;
     }
@@ -119,7 +87,6 @@ uint32_t decode(uint32_t instruction) {
 
     switch(opcode) {
         case 0x33:
-            
             switch(funct3)
             {
                 case 0b000:
@@ -206,29 +173,12 @@ uint32_t decode(uint32_t instruction) {
         default:
             //nop
         break;
-        /*case 0x37:
-            LUI(instruction);
-        case 0x17:
+        /*case 0x17:
             AUIPC(instruction);
         case 0x6F:
             JAL(instruction);
         case 0x67:
             JALR(instruction);
-        case 0x63:
-            switch(func3_branch) {
-                case 0x0:
-                    BEQ(instruction);
-                case 0x1:
-                    BNE(instruction);
-                case 0x4:
-                    BLT(instruction);
-                case 0x5:
-                    BGE(instruction);
-                case 0x6:
-                    BLTU(instruction);
-                case 0x7:
-                    BGEU(instruction);
-            }
         case 0x3:
             switch (func3_load) {
                 case 0x0:
@@ -312,6 +262,7 @@ void run_program() {
 
     while(!stop) {
         uint32_t current_instruction = read_instruction();
+        printf("Performing instruction: 0x%08x\n",current_instruction);
 
         decode(current_instruction);
 
@@ -328,26 +279,14 @@ void load(char* fname){
     FILE* file = fopen(fname, "r");
 
     int memory_position = 0;
-    long file_size = get_file_size(file);
 
     printf("Collecting binary data into program memory...\n");
 
-    while (ftell(file) < file_size) {
-        // collecting chars into one 32-bit instruction
-        uint32_t read = 0;
-        for(int j = 0; j <= 3; j++) {
-            uint32_t byte = fgetc(file);
-
-            read = (byte << (j * 8)) | read;
-        }
-
-        printf("%08x ", read);
-        print_binary(read);
-        printf("\n");
-
-        mem[memory_position] = read;
-        memory_position += 4;
+    do {
+        mem[memory_position] = fgetc(file);
+        memory_position++;
     }
+    while (!feof(file));
 
     fclose(file);
 }
@@ -410,7 +349,7 @@ int main(int argc, char* argv[]){
         printf("Missing argument");
         return 1;
     }
-    
+
     load(argv[1]);
 
     run_program();
