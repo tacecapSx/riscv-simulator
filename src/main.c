@@ -72,6 +72,7 @@ uint32_t decode(uint32_t instruction) {
         funct3 = (instruction & 0b00000000000000000111000000000000) >> 12;
         rs1 =    (instruction & 0b00000000000011111000000000000000) >> 15;
         imm =    (int32_t)instruction >> 20;
+        funct7 = instruction >> 25;
     }
     else if(opcode == 0x63) { // SB-format
         funct3 = (instruction & 0b00000000000000000111000000000000) >> 12;
@@ -97,6 +98,9 @@ uint32_t decode(uint32_t instruction) {
                         SUB(x, rd, funct3, rs1, rs2, funct7);
                     }
                     break;
+                case 0b001:
+                    SLL(x, rd, funct3, rs1, rs2, funct7);
+                    break;
                 case 0b010:
                     SLT(x, rd, funct3, rs1, rs2, funct7);
                     break;
@@ -105,6 +109,13 @@ uint32_t decode(uint32_t instruction) {
                     break;
                 case 0b100:
                     XOR(x, rd, funct3, rs1, rs2, funct7);
+                    break;
+                case 0b101:
+                    if(funct7 == 0) {
+                        SRL(x, rd, funct3, rs1, rs2, funct7);
+                    } else {
+                        SRA(x, rd, funct3, rs1, rs2, funct7);
+                    }
                     break;
                 case 0b110:
                     OR(x, rd, funct3, rs1, rs2, funct7);
@@ -118,6 +129,9 @@ uint32_t decode(uint32_t instruction) {
             switch(funct3) {
                 case 0b000:
                     ADDI(x, rd, funct3, rs1, imm);
+                    break;
+                case 0b001:
+                    SLLI(x, rd, funct3, rs1, imm);
                     break;
                 case 0b010:
                     SLTI(x, rd, funct3, rs1, imm);
@@ -134,11 +148,12 @@ uint32_t decode(uint32_t instruction) {
                 case 0b111:
                     ANDI(x, rd, funct3, rs1, imm);
                     break;
-                case 0b001:
-                    SLLI(x, rd, funct3, rs1, imm);
-                    break;
                 case 0b101:
-                    SRAI(x, rd, funct3, rs1, imm);
+                    if(funct7 == 0) {
+                        SRLI(x, rd, funct3, rs1, imm);
+                    } else {
+                        SRAI(x, rd, funct3, rs1, imm);
+                    }
                     break;
             }
         break;

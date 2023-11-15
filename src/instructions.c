@@ -106,3 +106,25 @@ void BGEU(int32_t x[32], uint32_t *pc, uint8_t rs1, uint8_t rs2, int32_t imm) {
 void LUI(int32_t x[32], uint8_t rd, int32_t imm) {
     x[rd] = ((uint32_t)x[rd] & 0xfff) | ((uint32_t)imm << 12);
 }
+
+void SLL(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, uint8_t rs2, uint8_t funct7) {
+    x[rd] = x[rs1] << x[rs2];
+}
+
+void SRL(uint32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, uint8_t rs2, uint8_t funct7) {
+    x[rd] = x[rs1] >> x[rs2];
+}
+
+void SRA(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, uint8_t rs2, uint8_t funct7) {
+    int significant = x[rd] >> 31;
+    x[rd] = x[rs1];
+    for (int i = 0; i < x[rs2]; i++) {
+        x[rd] = x[rd] >> 1;
+        x[rd] = x[rd] | (significant << 31);
+    }
+}
+
+void SRLI(uint32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, int32_t imm) {
+    x[rd] = x[rs1] >> (imm & 0x1f);
+}
+

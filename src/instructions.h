@@ -9,8 +9,9 @@ void ORI(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, int32_t imm);
 void ANDI(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, int32_t imm);
 void SLLI(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, int32_t imm);
 void SRAI(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, int32_t imm);
+void SRLI(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, int32_t imm);
 
-
+// 0x33
 void ADD(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, uint8_t rs2, uint8_t funct7);
 void SUB(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, uint8_t rs2, uint8_t funct7);
 void SLT(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, uint8_t rs2, uint8_t funct7);
@@ -18,6 +19,9 @@ void SLTU(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, uint8_t rs2, u
 void XOR(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, uint8_t rs2, uint8_t funct7);
 void OR(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, uint8_t rs2, uint8_t funct7);
 void AND(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, uint8_t rs2, uint8_t funct7);
+void SLL(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, uint8_t rs2, uint8_t funct7);
+void SRL(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, uint8_t rs2, uint8_t funct7);
+void SRA(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, uint8_t rs2, uint8_t funct7);
 
 void BEQ(int32_t x[32], uint32_t *pc, uint8_t rs1, uint8_t rs2, int32_t imm);
 void BNE(int32_t x[32], uint32_t *pc, uint8_t rs1, uint8_t rs2, int32_t imm);
