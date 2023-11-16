@@ -30,4 +30,9 @@ void BGE(int32_t x[32], uint32_t *pc, uint8_t rs1, uint8_t rs2, int32_t imm);
 void BLTU(int32_t x[32], uint32_t *pc, uint8_t rs1, uint8_t rs2, int32_t imm);
 void BGEU(int32_t x[32], uint32_t *pc, uint8_t rs1, uint8_t rs2, int32_t imm);
 
+// 0x37
 void LUI(int32_t x[32], uint8_t rd, int32_t imm);
+
+// 0x6F
+void JAL(int32_t x[32], uint32_t *pc, uint8_t rd, int32_t imm);
+

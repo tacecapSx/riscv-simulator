@@ -84,6 +84,10 @@ uint32_t decode(uint32_t instruction) {
         rd =     (instruction & 0b00000000000000000000111110000000) >> 7;
         imm =    (int32_t)instruction >> 12;
     }
+    else if(opcode == 0x6F) { // UJ-format
+        rd =    (instruction & 0b00000000000000000000111110000000) >> 7;
+        imm =   (int32_t)(((instruction & 0x80000000) | (instruction & 0x3FF000 << 9) | (instruction & 0x100000 >> 2) | (instruction & 0x7F800000 >> 9)) >> 11);
+    }
 
 
     switch(opcode) {
@@ -185,6 +189,8 @@ uint32_t decode(uint32_t instruction) {
         case 0x73:
             ecall();
         break;
+        case 0x6F:
+            JAL(x, &pc, rd, imm);
         default:
             //nop
         break;

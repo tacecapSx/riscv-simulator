@@ -128,3 +128,6 @@ void SRLI(uint32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, int32_t imm) 
     x[rd] = x[rs1] >> (imm & 0x1f);
 }
 
+void JAL(int32_t x[32], uint32_t *pc, uint8_t rd, int32_t imm) {
+    *pc += (imm - 4);
+}
