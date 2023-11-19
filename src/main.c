@@ -7,6 +7,7 @@
 #include <string.h>
 
 //defining stop signal and 32 bit program counter.
+int jump = 0;
 int stop = 0;
 uint32_t pc = 0;
 
@@ -14,7 +15,7 @@ uint32_t pc = 0;
 int32_t x[32];
 
 //memory with 2 mb.
-uint8_t mem[2097152];
+uint8_t mem[MEMORY_CAPACITY];
 
 void print_binary(uint32_t instruction) {
     for (int i = 31; i >= 0; i--) {
@@ -67,12 +68,18 @@ uint32_t decode(uint32_t instruction) {
         rs2 =    (instruction & 0b00000001111100000000000000000000) >> 20;
         funct7 = instruction >> 25;
     }
-    else if(opcode == 0x13) { // I-format
+    else if(opcode == 0x13 || opcode == 0x3 || opcode == 0x67) { // I-format
         rd =     (instruction & 0b00000000000000000000111110000000) >> 7;
         funct3 = (instruction & 0b00000000000000000111000000000000) >> 12;
         rs1 =    (instruction & 0b00000000000011111000000000000000) >> 15;
         imm =    (int32_t)instruction >> 20;
         funct7 = instruction >> 25;
+    }
+    else if(opcode == 0x23) { // S-format
+        funct3 = (instruction & 0b00000000000000000111000000000000) >> 12;
+        rs1 =    (instruction & 0b00000000000011111000000000000000) >> 15;
+        rs2 =    (instruction & 0b00000001111100000000000000000000) >> 20;
+        imm =    ((int32_t)(((instruction & 0b11111110000000000000000000000000) >> 20) | ((instruction & 0b00000000000000000000111110000000) >> 7)) << 20) >> 20;
     }
     else if(opcode == 0x63) { // SB-format
         funct3 = (instruction & 0b00000000000000000111000000000000) >> 12;
@@ -80,15 +87,14 @@ uint32_t decode(uint32_t instruction) {
         rs2 =    (instruction & 0b00000001111100000000000000000000) >> 20;
         imm =    (int32_t)((((((instruction & 0x7E000000) >> 21) | ((instruction & 0xF00) >> 8)) | ((instruction & 0x80000000) >> 20)) | ((instruction & 0x80) << 3)) << 20) >> 19;
     }
-    else if(opcode == 0x37) { // U-format
+    else if(opcode == 0x37 || opcode == 0x17) { // U-format
         rd =     (instruction & 0b00000000000000000000111110000000) >> 7;
         imm =    (int32_t)instruction >> 12;
     }
     else if(opcode == 0x6F) { // UJ-format
         rd =    (instruction & 0b00000000000000000000111110000000) >> 7;
-        imm =   (int32_t)(((instruction & 0x80000000) | (instruction & 0x3FF000 << 9) | (instruction & 0x100000 >> 2) | (instruction & 0x7F800000 >> 9)) >> 11);
+        imm =   (int32_t)((instruction & 0x80000000) | ((instruction & 0xFF000) << 11) | ((instruction & 0x100000) << 2) | ((instruction & 0x7FE00000) >> 9)) >> 11;
     }
-
 
     switch(opcode) {
         case 0x33:
@@ -129,6 +135,38 @@ uint32_t decode(uint32_t instruction) {
                     break;
             }
         break;
+        case 0x3:
+            switch(funct3) {
+                case 0b000:
+                    LB(x, mem, rd, funct3, rs1, imm);
+                    break;
+                case 0b001:
+                    LH(x, mem, rd, funct3, rs1, imm);
+                    break;
+                case 0b010:
+                    LW(x, mem, rd, funct3, rs1, imm);
+                    break;
+                case 0b100:
+                    LBU(x, mem, rd, funct3, rs1, imm);
+                    break;
+                case 0b101:
+                    LHU(x, mem, rd, funct3, rs1, imm);
+                    break;
+            }
+        break;
+        case 0x23:
+            switch(funct3) {
+                case 0b000:
+                    SB(x, mem, funct3, rs1, rs2, imm);
+                    break;
+                case 0b001:
+                    SH(x, mem, funct3, rs1, rs2, imm);
+                    break;
+                case 0b010:
+                    SW(x, mem, funct3, rs1, rs2, imm);
+                    break;
+            }
+        break;
         case 0x13:
             switch(funct3) {
                 case 0b000:
@@ -163,118 +201,46 @@ uint32_t decode(uint32_t instruction) {
         break;
         case 0x37:
             LUI(x, rd, imm);
-        break;
+            break;
+        case 0x17:
+            AUIPC(x, &pc, rd, imm);
+            break;
         case 0x63:
             switch(funct3) {
                 case 0b000:
-                    BEQ(x, &pc, rs1, rs2, imm);
-                break;
+                    BEQ(&jump, x, &pc, rs1, rs2, imm);
+                    break;
                 case 0b001:
-                    BNE(x, &pc, rs1, rs2, imm);
-                break;
+                    BNE(&jump, x, &pc, rs1, rs2, imm);
+                    break;
                 case 0b100:
-                    BLT(x, &pc, rs1, rs2, imm);
-                break;
+                    BLT(&jump, x, &pc, rs1, rs2, imm);
+                    break;
                 case 0b101:
-                    BGE(x, &pc, rs1, rs2, imm);
-                break;
+                    BGE(&jump, x, &pc, rs1, rs2, imm);
+                    break;
                 case 0b110:
-                    BLTU(x, &pc, rs1, rs2, imm);
-                break;
+                    BLTU(&jump, x, &pc, rs1, rs2, imm);
+                    break;
                 case 0b111:
-                    BGEU(x, &pc, rs1, rs2, imm);
-                break;
+                    BGEU(&jump, x, &pc, rs1, rs2, imm);
+                    break;
             }
         break;
         case 0x73:
             ecall();
-        break;
+            break;
         case 0x6F:
+            jump = 1;
             JAL(x, &pc, rd, imm);
+            break;
+        case 0x67:
+            jump = 1;
+            JALR(x, &pc, rd, funct3, rs1, imm);
+            break;
         default:
             //nop
         break;
-        /*case 0x17:
-            AUIPC(instruction);
-        case 0x6F:
-            JAL(instruction);
-        case 0x67:
-            JALR(instruction);
-        case 0x3:
-            switch (func3_load) {
-                case 0x0:
-                    LB(instruction);
-                case 0x1:
-                    LH(instruction);
-                case 0x2:
-                    LW(instruction);
-                case 0x4:
-                    LBU(instruction);
-                case 0x5:
-                    LHU(instruction);
-            }
-        case 0x23:
-            switch (func3_store) {
-                case 0x0:
-                    SB(instruction);
-                case 0x1:
-                    SH(instruction);
-                case 0x2:
-                    SW(instruction);
-            }
-        case 0x13:
-            switch (func3_two_op) {
-                case 0x0:
-                    ADDI(instruction);
-                case 0x2:
-                    SLTI(instruction);
-                case 0x3:
-                    SLTIU(instruction);
-                case 0x4:
-                    XORI(instruction);
-                case 0x6:
-                    ORI(instruction);
-                case 0x7:
-                    ANDI(instruction);
-                case 0x1:
-                    SLLI(instruction);
-                case 0x5:
-                    switch (imm) {
-                        case 0x0:
-                            SRLI(instruction);
-                        case 0x20:
-                            SRAI(instruction);                        
-                    }
-            }
-        case 0x33:
-            switch (func3_logic) {
-                case 0x0:
-                    switch (imm_add_sub) {
-                        case 0x0:
-                            ADD(instruction);
-                        case 0x20:
-                            SUB(instruction);
-                    }
-                case 0x1:
-                    SLL(instruction);
-                case 0x2:
-                    SLT(instruction);
-                case 0x3:
-                    SLTU(instruction);
-                case 0x4:
-                    XOR(instruction);
-                case 0x5:
-                    switch (imm_sr) {
-                        case 0x0:
-                            SRL(instruction);
-                        case 0x20:
-                            SRA(instruction);
-                    }
-                case 0x6:
-                    OR(instruction);
-                case 0x7:
-                    AND(instruction);
-            }*/
    }
 }
 
@@ -289,7 +255,12 @@ void run_program() {
 
         x[0] = 0; // make sure x0 is always 0
 
-        pc += 4;
+        if(!jump) {
+            pc += 4;
+        }
+        else {
+            jump = 0;
+        }
     }
 }
 
@@ -330,19 +301,20 @@ void create_result_file(char* file_name) {
 }
 
 void compare_results(char* binary_file, char* generated_result_filename) {
+    printf("Comparing file \"%s\"", generated_result_filename);
     FILE* file1 = fopen(generated_result_filename, "r");
     
     char* dot_position = strchr(binary_file, '.');
     strcpy(dot_position + 1, "res");
 
+    printf(" to \"%s\"\n", binary_file);
+
     FILE* file2 = fopen(binary_file, "r");
 
-    char byte1;
-    char byte2;
+    uint8_t byte1;
+    uint8_t byte2;
     int i = 0;
     int found_difference = 0;
-
-    printf("Comparing results...\n");
 
     do {
         byte1 = fgetc(file1);
@@ -354,7 +326,7 @@ void compare_results(char* binary_file, char* generated_result_filename) {
         }
 
         i++;
-    } while (byte1 != EOF && byte2 != EOF);
+    } while (!feof(file1) && !feof(file2));
 
     // close the files when done
     fclose(file1);
