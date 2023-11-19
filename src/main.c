@@ -6,15 +6,17 @@
 #include "instructions.h"
 #include <string.h>
 
-//defining stop signal and 32 bit program counter.
+// defining jump and stop signals (booleans)
 int jump = 0;
 int stop = 0;
+
+// 32-bit program counter
 uint32_t pc = 0;
 
-//register x1 to x32
+// registers
 int32_t x[32];
 
-//memory with 2 mb.
+// memory with 2 mb.
 uint8_t mem[MEMORY_CAPACITY];
 
 void print_binary(uint32_t instruction) {
@@ -23,7 +25,6 @@ void print_binary(uint32_t instruction) {
     }
 }
 
-//Function to read instruction from memory
 uint32_t read_instruction() {
     return *(uint32_t*)&mem[pc];
 }
@@ -41,10 +42,10 @@ void ecall() {
 }
 
 void print_results() {
-    printf("Registers:\nx0 = 0\n");
+    printf("\nRegister contents:\n");
 
-    for(int i = 1; i < 32; i++) {
-        printf("x%d = %x\n", i, x[i]);
+    for(int i = 0; i < 32; i++) {
+        printf("x%d = 0x%08x\n", i, x[i]);
     }
 }
 
@@ -293,21 +294,20 @@ void create_result_file(char* file_name) {
 
         // close the file when done
         fclose(file);
-        printf("File written successfully!\n");
+        printf("\nFile written successfully!\n");
     } else {
-        // handle error if file couldn't be opened
-        printf("Error opening file!\n");
+        printf("\nFailed to write result file!\n");
     }
 }
 
 void compare_results(char* binary_file, char* generated_result_filename) {
-    printf("Comparing file \"%s\"", generated_result_filename);
+    printf("\nComparing file \"%s\"", generated_result_filename);
     FILE* file1 = fopen(generated_result_filename, "r");
     
     char* dot_position = strchr(binary_file, '.');
     strcpy(dot_position + 1, "res");
 
-    printf(" to \"%s\"\n", binary_file);
+    printf(" to \"%s\"...\n", binary_file);
 
     FILE* file2 = fopen(binary_file, "r");
 
@@ -333,7 +333,7 @@ void compare_results(char* binary_file, char* generated_result_filename) {
     fclose(file2);
 
     if(!found_difference) {
-        printf("No differences found!\n");
+        printf("\nNo differences found!\n");
     }
 }
 
@@ -355,6 +355,8 @@ int main(int argc, char* argv[]){
     create_result_file(file_name_to_save);
 
     compare_results(argv[1], file_name_to_save);
+
+    printf("\nExiting...\n");
 
     return 0;
 }
