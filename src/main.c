@@ -243,6 +243,8 @@ uint32_t decode(uint32_t instruction) {
             //nop
         break;
    }
+    //return 0 if opp code not found
+    return 0;
 }
 
 void run_program() {

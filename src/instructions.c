@@ -151,7 +151,7 @@ void LUI(int32_t x[32], uint8_t rd, int32_t imm) {
 }
 
 void AUIPC(int32_t x[32], uint32_t *pc, uint8_t rd, int32_t imm) {
-    x[rd] = *pc + imm << 12;
+    x[rd] = (*pc + imm) << 12;
 }
 
 void SLL(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, uint8_t rs2, uint8_t funct7) {
