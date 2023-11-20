@@ -1,4 +1,8 @@
-// to compile (win): gcc.exe src/instructions.c src/main.c -o main.exe
+// to compile (linux/mac): gcc src/instructions.c src/main.c -o main.out -std=c99
+// to run (linux/mac):     ./main.out <binary_file_path>
+
+// to compile (win): gcc src/instructions.c src/main.c -o main.exe -std=c99
+// to run (win):     ./main.exe <binary_file_path>
 
 #include "stdio.h"
 #include "stdint.h"
