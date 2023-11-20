@@ -20,7 +20,7 @@ uint32_t pc = 0;
 // registers
 int32_t x[32];
 
-// memory with 2 mb.
+// memory with 1 mb.
 uint8_t mem[MEMORY_CAPACITY];
 
 void print_binary(uint32_t instruction) {
