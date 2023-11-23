@@ -48,8 +48,11 @@ void ecall() {
 void print_results() {
     printf("\nRegister contents:\n");
 
-    for(int i = 0; i < 32; i++) {
-        printf("x%d = 0x%08x\n", i, x[i]);
+    for(int i = 0; i < 32; i+=4) {
+        for(int j = 0; j < 4; j++) {
+            printf("x%d = 0x%08x,\t", i+j, x[i+j]);
+        }
+        printf("\n");
     }
 }
 
