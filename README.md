@@ -1,5 +1,5 @@
 # riscv-simulator
-A solution to the final assignment of Computer Architecture and Engineering (02155) made by Betina Mee Hansen [s195389] (@Mee-creator), Martin Handest [s224755] (@tacecapSx) and Viktor Saxil Egesby [s214951] (@viktoregesby) in C.
+A solution to the final assignment of Computer Architecture and Engineering (02155) made by Betina Mee Hansen [s195389] ([@Mee-creator](https://github.com/Mee-creator)), Martin Handest [s224755] ([@tacecapSx](https://github.com/tacecapSx)) and Viktor Saxil Egesby [s214951] ([@viktoregesby](https://github.com/viktoregesby)) in C.
 
 ## Build Setup
 
