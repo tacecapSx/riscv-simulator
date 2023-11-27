@@ -10,40 +10,27 @@
 #include "instructions.h"
 #include <string.h>
 
-// defining jump and stop signals (booleans)
-int jump = 0;
-int stop = 0;
-
-// 32-bit program counter
-uint32_t pc = 0;
-
-// registers
-int32_t x[32];
-
-// memory with 1 mb.
-uint8_t mem[MEMORY_CAPACITY];
-
 //Read a word from byte memory
-uint32_t read_instruction() {
+uint32_t read_instruction(uint8_t mem[MEMORY_CAPACITY], uint32_t pc) {
     return *(uint32_t*)&mem[pc];
 }
 
-void ecall() {
+void ecall(int32_t x[REGISTER_AMOUNT], int *stop) {
     uint32_t opcode = x[17]; // read a7
 
     printf("Performing ecall %d.\n", opcode);
 
     switch(opcode) {
         case 0x0a: //exit
-            stop = 1;
+            *stop = 1;
         break;
     }
 }
 
-void print_results() {
+void print_results(int32_t x[REGISTER_AMOUNT]) {
     printf("\nRegister contents:\n");
 
-    for(int i = 0; i < 32; i+=4) {
+    for(int i = 0; i < REGISTER_AMOUNT; i+=4) {
         for(int j = 0; j < 4; j++) {
             printf("x%02d = 0x%08x, ", i+j, x[i+j]);
         }
@@ -52,7 +39,7 @@ void print_results() {
 }
 
 //Decode and execute instruction
-void execute(uint32_t instruction) {
+void execute(int32_t x[REGISTER_AMOUNT], uint8_t mem[MEMORY_CAPACITY], int *jump, int *stop, uint32_t *pc, uint32_t instruction) {
     int opcode = instruction & 0x7F; // 7 least significant bits are opcode
 
     uint8_t rd;
@@ -197,40 +184,40 @@ void execute(uint32_t instruction) {
             LUI(x, rd, imm);
             break;
         case 0x17:
-            AUIPC(x, &pc, rd, imm);
+            AUIPC(x, pc, rd, imm);
             break;
         case 0x63:
             switch(funct3) {
                 case 0b000:
-                    BEQ(&jump, x, &pc, rs1, rs2, imm);
+                    BEQ(jump, x, pc, rs1, rs2, imm);
                     break;
                 case 0b001:
-                    BNE(&jump, x, &pc, rs1, rs2, imm);
+                    BNE(jump, x, pc, rs1, rs2, imm);
                     break;
                 case 0b100:
-                    BLT(&jump, x, &pc, rs1, rs2, imm);
+                    BLT(jump, x, pc, rs1, rs2, imm);
                     break;
                 case 0b101:
-                    BGE(&jump, x, &pc, rs1, rs2, imm);
+                    BGE(jump, x, pc, rs1, rs2, imm);
                     break;
                 case 0b110:
-                    BLTU(&jump, x, &pc, rs1, rs2, imm);
+                    BLTU(jump, x, pc, rs1, rs2, imm);
                     break;
                 case 0b111:
-                    BGEU(&jump, x, &pc, rs1, rs2, imm);
+                    BGEU(jump, x, pc, rs1, rs2, imm);
                     break;
             }
         break;
         case 0x73:
-            ecall();
+            ecall(x, stop);
             break;
         case 0x6F:
-            jump = 1;
-            JAL(x, &pc, rd, imm);
+            *jump = 1;
+            JAL(x, pc, rd, imm);
             break;
         case 0x67:
-            jump = 1;
-            JALR(x, &pc, rd, funct3, rs1, imm);
+            *jump = 1;
+            JALR(x, pc, rd, funct3, rs1, imm);
             break;
         default:
             //nop
@@ -239,14 +226,21 @@ void execute(uint32_t instruction) {
 }
 
 //Main program loop
-void run_program() {
+void run_program(int32_t x[REGISTER_AMOUNT], uint8_t mem[MEMORY_CAPACITY]) {
+    // defining jump and stop signals (booleans)
+    int jump = 0;
+    int stop = 0;
+
+    // 32-bit program counter
+    uint32_t pc = 0;
+    
     printf("Running program...\n");
 
     while(!stop) {
-        uint32_t current_instruction = read_instruction();
+        uint32_t current_instruction = read_instruction(mem, pc);
         printf("Performing instruction: 0x%08x\n",current_instruction);
 
-        execute(current_instruction);
+        execute(x, mem, &jump, &stop, &pc, current_instruction);
 
         x[0] = 0; // make sure x0 is always 0
 
@@ -260,7 +254,7 @@ void run_program() {
 }
 
 //Function to load program from binary file
-int load(char* fname){
+int load(char* fname, uint8_t mem[MEMORY_CAPACITY]){
     printf("Opening .bin file...\n");
 
     FILE* file = fopen(fname, "r");
@@ -286,12 +280,12 @@ int load(char* fname){
 }
 
 //Dumping register contents to a binary .res file
-int create_result_file(char* file_name) {
+int create_result_file(char* file_name, int32_t x[REGISTER_AMOUNT]) {
     FILE* file = fopen(file_name, "wb");
 
     if (file != NULL) {
         // write the entire register array to the file
-        fwrite(x, sizeof(uint32_t), sizeof(x) / sizeof(uint32_t), file);
+        fwrite(x, sizeof(uint32_t), REGISTER_AMOUNT, file);
 
         fclose(file);
         printf("\n.res file written successfully!\n");
@@ -353,19 +347,25 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
-    if(load(argv[1])) {
+    // memory with 1 mb.
+    uint8_t mem[MEMORY_CAPACITY];
+
+    if(load(argv[1], mem)) {
         return 1; // return error, as file is not found
     }
 
-    run_program();
+    // registers
+    int32_t x[REGISTER_AMOUNT];
 
-    print_results();
+    run_program(x, mem);
+
+    print_results(x);
 
     // create file name to save by adding the .res file extension to the input file
     char* file_name_to_save = argv[1];
     sprintf(file_name_to_save, "%s.res", argv[1]);
 
-    if(create_result_file(file_name_to_save)) {
+    if(create_result_file(file_name_to_save, x)) {
         return 1; // return error, as .res file failed to be written
     }
 

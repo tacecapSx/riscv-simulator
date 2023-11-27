@@ -1,6 +1,7 @@
 #include "stdint.h"
 
 #define MEMORY_CAPACITY 1048576
+#define REGISTER_AMOUNT 32
 
 // 0x13
 void ADDI(int32_t x[32], uint8_t rd, uint8_t funct3, uint8_t rs1, int32_t imm);
