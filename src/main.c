@@ -15,12 +15,10 @@ uint32_t read_instruction(uint8_t mem[MEMORY_CAPACITY], uint32_t pc) {
     return *(uint32_t*)&mem[pc];
 }
 
-void ecall(int32_t x[REGISTER_AMOUNT], int *stop) {
-    uint32_t opcode = x[17]; // read a7
+void ecall(int32_t a7, int *stop) {
+    printf("Performing ecall %d.\n", a7);
 
-    printf("Performing ecall %d.\n", opcode);
-
-    switch(opcode) {
+    switch(a7) {
         case 0x0a: //exit
             *stop = 1;
         break;
@@ -209,7 +207,7 @@ void execute(int32_t x[REGISTER_AMOUNT], uint8_t mem[MEMORY_CAPACITY], int *jump
             }
         break;
         case 0x73:
-            ecall(x, stop);
+            ecall(x[17], stop); // pass in value of a7
             break;
         case 0x6F:
             *jump = 1;
@@ -253,7 +251,7 @@ void run_program(int32_t x[REGISTER_AMOUNT], uint8_t mem[MEMORY_CAPACITY]) {
     }
 }
 
-//Function to load program from binary file
+//Function to load program from binary file into program memory
 int load(char* fname, uint8_t mem[MEMORY_CAPACITY]){
     printf("Opening .bin file...\n");
 
@@ -285,7 +283,7 @@ int create_result_file(char* file_name, int32_t x[REGISTER_AMOUNT]) {
 
     if (file != NULL) {
         // write the entire register array to the file
-        fwrite(x, sizeof(uint32_t), REGISTER_AMOUNT, file);
+        fwrite(x, sizeof(int32_t), REGISTER_AMOUNT, file);
 
         fclose(file);
         printf("\n.res file written successfully!\n");
