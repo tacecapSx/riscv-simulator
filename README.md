@@ -10,3 +10,6 @@ $ make riscv
 # run tests
 $ ./riscv-simulator test/task_n/example.bin
 ```
+
+## Compare results
+We made our own version of the "check_output.sh" script as part of the program, this will automatically run after every test and comare the correct.res to our output.res and check for differences. If a difference is found we print where we found it, otherwise if no differences is found we print that.
